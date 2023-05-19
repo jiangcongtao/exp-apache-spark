@@ -1,0 +1,6 @@
+[submodule "hadoop"]
+	path = hadoop
+	url = https://github.com/jiangcongtao/exp-apache-hadoop.git
+[submodule "docker-stacks"]
+	path = docker-stacks
+	url = https://github.com/jupyter/docker-stacks.git

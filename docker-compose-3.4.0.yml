@@ -1,0 +1,98 @@
+version: "3.9"
+services:
+  spark-master:
+    image: cluster-apache-spark:3.4.0
+    container_name: spark-master
+    environment: 
+      - SPARK_WORKLOAD=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_PUBLIC_DNS=${MASTER_HOST:-localhost}
+      - SPARK_MASTER_WEBUI_PORT=9090
+    ports:
+      - "9090:9090"
+      - "7077:7077"
+    volumes:
+      - ./apps:/opt/spark-apps
+      - ./data:/opt/spark-data
+    networks:
+      - spark_network
+  
+  spark-worker-1:
+    image: cluster-apache-spark:3.4.0
+    container_name: spark-worker-1
+    environment: 
+      - SPARK_WORKLOAD=worker
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_PUBLIC_DNS=localhost
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_DRIVER_MEMORY=2G
+      - SPARK_EXECUTOR_MEMORY=2G
+      - SPARK_WORKER_WEBUI_PORT=9091
+    depends_on:
+      - spark-master
+    volumes:
+      - ./apps:/opt/spark-apps
+      - ./data:/opt/spark-data
+    ports:
+      - "9091:9091"
+      - "7001:7000"
+    networks:
+      - spark_network
+      
+  spark-worker-2:
+    image: cluster-apache-spark:3.4.0
+    container_name: spark-worker-2
+    environment:  
+      - SPARK_WORKLOAD=worker
+      - SPARK_MASTER=spark://spark-master:7077
+      - SPARK_PUBLIC_DNS=localhost
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_DRIVER_MEMORY=2G
+      - SPARK_EXECUTOR_MEMORY=2G
+      - SPARK_WORKER_WEBUI_PORT=9092
+    depends_on:
+      - spark-master
+    volumes:
+      - ./apps:/opt/spark-apps
+      - ./data:/opt/spark-data
+    ports:
+      - "9092:9092"
+      - "7002:7000"
+    networks:
+      - spark_network
+
+  demo-db:
+    # test PostGres server: psql -U postgres -h 0.0.0.0 -p 5432
+    image: postgres:15.3-alpine
+    ports: 
+      - "5432:5432"
+    environment: 
+      - POSTGRES_PASSWORD=pass1234
+    networks:
+      - spark_network
+
+  jupyterlab:
+      # PySpark 3.4.0 working with Spark 3.4.0
+      image: jupyter/pyspark-notebook:2023-05-15
+      container_name: jupyterlab
+      ports:
+        - 8888:8888
+      depends_on:
+        - spark-master
+      networks:
+        - spark_network
+      volumes:
+        - ./data:/opt/spark-data
+        - ./data:/home/jovyan/data
+        - ./notebooks:/home/jovyan
+
+networks:
+  spark_network:
+    driver: bridge
+    ipam:
+     driver: default
+     config:
+       - subnet: 10.5.0.0/16
