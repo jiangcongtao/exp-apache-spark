@@ -1,0 +1,1 @@
+docker build --platform=linux/amd64 -f build-pyspark-notebook-3.4.0/Dockerfile -t jupyter/pyspark-notebook:2023-05-15-sudo build-pyspark-notebook-3.4.0/

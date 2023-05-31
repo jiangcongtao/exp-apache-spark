@@ -76,8 +76,9 @@ services:
 
   jupyterlab:
       # PySpark 3.4.0 working with Spark 3.4.0
-      image: jupyter/pyspark-notebook:2023-05-15
+      image: jupyter/pyspark-notebook:2023-05-15-sudo
       container_name: jupyterlab
+      platform: linux/amd64
       ports:
         - 8888:8888
       depends_on:
